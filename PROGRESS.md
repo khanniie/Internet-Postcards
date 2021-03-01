@@ -1,8 +1,5 @@
 # Progress log
 
-## Timeline
-![timeline](./progress_assets/timeline.png)
-
 ## 02/26/21
 ![progress gif](./progress_assets/dog_demo.gif)
 - Set up new extension
