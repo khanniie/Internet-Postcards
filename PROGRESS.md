@@ -8,7 +8,7 @@
 - got the image grabbing working
 
 ## 03/05/21
-<!-- ![progress gif](./progress_assets/dog_demo.gif) -->
+![progress gif](./progress_assets/progress2.gif)
 - question for the class: think about how to prevent IP theft?
   - I don't want to make easy for people to make random postcards using other people's art
   - one solution could be making the blocky website title a requirement instead of a nice add-on

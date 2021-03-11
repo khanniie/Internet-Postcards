@@ -16,12 +16,16 @@ chrome.runtime.onMessage.addListener(
 
       let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
-      chrome.tabs.captureVisibleTab(tab.windowId, {}, image => {
-        //chrome.storage.local.set({savedImage: image});
-        chrome.runtime.sendMessage({message: "loaded", savedImage: image}, function(res){
-              console.log(res)
-        });
-      })
+      if(tab){
+        chrome.tabs.captureVisibleTab(tab.windowId, {}, image => {
+          //chrome.storage.local.set({savedImage: image});
+          chrome.runtime.sendMessage({message: "loaded", savedImage: image}, function(res){
+                console.log(res)
+          });
+        })
+      } else {
+        chrome.runtime.sendMessage({message: "error"});
+      }
     }
       
   }
