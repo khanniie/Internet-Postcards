@@ -1,6 +1,9 @@
+import {init as threejsinit, animate as threejsanimate} from './threejs_font.js'
+
 // Initialize butotn with users's prefered color
 let captureButton = document.getElementById("capture");
 let startPage = document.getElementById("starting-page");
+let decorate = document.getElementById("decorationContainer");
 let continueButton = document.getElementById("continue");
 let decorateButton = document.getElementById("decorate");
 let rectcutter = document.getElementById("rect-cutter");
@@ -9,6 +12,9 @@ let imageContainer = document.getElementById("image-container");
 let step = document.getElementById("step");
 let specific_instruction = document.getElementById("specific");
 let newimg;
+let t;
+let canvas;
+let url;
 
 let dragging = false;
 let resizing = false;
@@ -58,7 +64,8 @@ const setupListeners = () => {
     (request, sender, sendResponse) => {
       console.log("I'm popup js and I'm doing a thing")
       if(request.message === "loaded"){
-        console.log("SUCCESS", request.savedImage)
+        console.log("SUCCESS");
+        url = request.url;
         bindImg(request.savedImage)
         sendResponse({message: "thanks!"});
       } else if (request.message === "error"){
@@ -93,11 +100,21 @@ const setupBoundingBoxPhase = ()=>{
   })
 }
 
+const setupThreejs = () => {
+  threejsinit(canvas, url);
+  threejsanimate();
+}
+
 const setupDecorate= ()=>{
+  imageContainer.style.display="none"
   decorateButton.style.display = "block";
   step.innerHTML = "Step 3";
   specific_instruction.innerHTML = "Decorate the postcard!";
-
+  decorate.style.display="block";
+  document.getElementById("bg-line").src = "../images/decorative_line_2.svg"
+  document.getElementById("bg-line").style.width = "710px"
+  document.getElementById("bg-line").style.left = "59.5px"
+  setupThreejs();
   return (() => {
     console.log("nothing to do for now")
   })
@@ -184,6 +201,8 @@ document.getElementById("continue").addEventListener("click", () => {
   let cropped = document.createElement("CANVAS");
   let ctx = cropped.getContext("2d");
 
+  canvas = cropped;
+
   cropped.width = postcardWidth;
   cropped.height = postcardHeight;
   
@@ -203,7 +222,7 @@ document.getElementById("continue").addEventListener("click", () => {
       0, 0, postcardWidth, postcardHeight);
   }
   
-  document.getElementById("image-container").append(cropped);
+  decorate.append(cropped);
   switchPhase();
 });
 

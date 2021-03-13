@@ -19,7 +19,8 @@ chrome.runtime.onMessage.addListener(
       if(tab){
         chrome.tabs.captureVisibleTab(tab.windowId, {}, image => {
           //chrome.storage.local.set({savedImage: image});
-          chrome.runtime.sendMessage({message: "loaded", savedImage: image}, function(res){
+          console.log(tab)
+          chrome.runtime.sendMessage({message: "loaded", savedImage: image, url: tab.url}, function(res){
                 console.log(res)
           });
         })
