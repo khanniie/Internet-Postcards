@@ -1,134 +1,200 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <link rel="preconnect" href="https://fonts.gstatic.com">
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400;1,500;1,700&family=PT+Serif:ital,wght@1,700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="button.css">
-  </head>
-  <body>
-    <img src="images/decorative_line.svg" id="bg-line"/>
-    <div id="error">
-      Oh no! It looks we failed to capture the image. 
-      <br/>
-      This can happen when you open the extension but navigate away from this tab momentarily. 
-      <br/>
-      No worries, close and reopen this extension and try again.
-    </div>
-    <div id="title">
-      <img src="./images/icon.svg" />
-      Internet Postcards
-    </div>
-    <div id="instructions">
-      <span id="step">Step 1</span>
-      <span id="specific">Capture the thing.</span>
-    </div>
-    <div id="postcard">
-      <div id="starting-page">
-        <div id="starting-page-info">
-          This extension lets you send real, physical, stylized postcards from any website for $1.
-        </div>
-        <div id="starting-page-buttons">
-          <button>Go to homepage</button>
-          <button>More Info</button>
-        </div>
-        <img src="images/starting_image.png"/>
+   <head>
+      <link rel="preconnect" href="https://fonts.gstatic.com">
+      <link href="https://fonts.googleapis.com/css2?family=Courgette&family=DM+Sans:ital,wght@0,500;0,700;1,400;1,500;1,700&family=Handlee&family=Homemade+Apple&family=Nanum+Pen+Script&family=PT+Serif:ital,wght@1,400;1,700&family=Syne+Mono&display=swap" rel="stylesheet">
+      <link rel="stylesheet" href="button.css">
+   </head>
+   <body>
+      <img src="images/decorative_line.svg" id="bg-line"/>
+      <div id="error">
+         Oh no! It looks we failed to capture the image. 
+         <br/>
+         This can happen when you open the extension but navigate away from this tab momentarily. 
+         <br/>
+         No worries, close and reopen this extension and try again.
       </div>
-      <div id="image-container">
-        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" id="rect-cutter">
-          <g id="rect-container" transform="translate(2 2)">
-            <rect
-              id="rect-drag"
-              width="60" 
-              height="40"  
-              fill="transparent"
-              stroke-dasharray="2,0.8" 
-              stroke="black"
-              stroke-width="0.2"
-            />
-            <g
-              stroke="transparent" 
-              stroke-width="4" 
-            >
-              <line
-                id="rect-resize-w"
-                class="resize-rect"
-                x1="0"
-                y1="0"
-                x2="0"
-                y2="40"
-              />
-              <line
-                id="rect-resize-e"
-                class="resize-rect"
-                x1="60"
-                y1="0"
-                x2="60"
-                y2="40"
-              />
-              <line
-                id="rect-resize-n"
-                class="resize-rect"
-                x1="0"
-                y1="0"
-                x2="60"
-                y2="0"
-              />
-              <line
-                id="rect-resize-s"
-                class="resize-rect"
-                x1="0"
-                y1="40"
-                x2="60"
-                y2="40"
-              />
-            </g>
-            <g fill="transparent">
-              <rect
-                id="rect-resize-nw"
-                class="resize-rect"
-                stroke-width="0"
-                width="4"
-                height="4"
-                x="-2"
-                y="-2"
-              />
-              <rect
-                id="rect-resize-ne"
-                class="resize-rect"
-                width="4"
-                height="4"
-                x="58"
-                y="-2"
-              />
-              <rect
-                id="rect-resize-se"
-                class="resize-rect"
-                width="4"
-                height="4"
-                x="58"
-                y="38"
-              />
-              <rect
-                id="rect-resize-sw"
-                class="resize-rect"
-                width="4"
-                height="4"
-                x="-2"
-                y="38"
-              />
-            </g>
-          </g>
-        </svg>
+      <div id="title">
+         <img src="./images/icon.svg" />
+         Internet Postcards
       </div>
-      <div id="decorationContainer">
+      <div id="instructions">
+         <span id="step">Step 1</span>
+         <span id="specific">Capture the thing.</span>
       </div>
-    </div>
-    <div id="button-rows">
-      <button id="capture">Capture</button>
-      <button id="continue">Continue</button>
-      <button id="decorate">Done decorating</button>
-    </div>
-    <!-- <script type="module" src="threejs_font.js"></script> -->
-    <script type="module" src="popup.js"></script>
-  </body>
+      <div id="postcard">
+         <div id="starting-page">
+            <div id="starting-page-info">
+               This extension lets you send real, physical, stylized postcards from any website for $1.
+            </div>
+            <div id="starting-page-buttons">
+               <button>Go to homepage</button>
+               <button>More Info</button>
+            </div>
+            <img src="images/starting_image.png"/>
+         </div>
+         <div id="image-container">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" id="rect-cutter">
+               <g id="rect-container" transform="translate(2 2)">
+                  <rect
+                     id="rect-drag"
+                     width="60" 
+                     height="40"  
+                     fill="transparent"
+                     stroke-dasharray="2,0.8" 
+                     stroke="black"
+                     stroke-width="0.2"
+                     />
+                  <g
+                     stroke="transparent" 
+                     stroke-width="4" 
+                     >
+                     <line
+                        id="rect-resize-w"
+                        class="resize-rect"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="40"
+                        />
+                     <line
+                        id="rect-resize-e"
+                        class="resize-rect"
+                        x1="60"
+                        y1="0"
+                        x2="60"
+                        y2="40"
+                        />
+                     <line
+                        id="rect-resize-n"
+                        class="resize-rect"
+                        x1="0"
+                        y1="0"
+                        x2="60"
+                        y2="0"
+                        />
+                     <line
+                        id="rect-resize-s"
+                        class="resize-rect"
+                        x1="0"
+                        y1="40"
+                        x2="60"
+                        y2="40"
+                        />
+                  </g>
+                  <g fill="transparent">
+                     <rect
+                        id="rect-resize-nw"
+                        class="resize-rect"
+                        stroke-width="0"
+                        width="4"
+                        height="4"
+                        x="-2"
+                        y="-2"
+                        />
+                     <rect
+                        id="rect-resize-ne"
+                        class="resize-rect"
+                        width="4"
+                        height="4"
+                        x="58"
+                        y="-2"
+                        />
+                     <rect
+                        id="rect-resize-se"
+                        class="resize-rect"
+                        width="4"
+                        height="4"
+                        x="58"
+                        y="38"
+                        />
+                     <rect
+                        id="rect-resize-sw"
+                        class="resize-rect"
+                        width="4"
+                        height="4"
+                        x="-2"
+                        y="38"
+                        />
+                  </g>
+               </g>
+            </svg>
+         </div>
+         <div id="decoration-container">
+            <div id="trashcan"><img src="images/trash.svg" alt="an icon of a trashcan"/></div>
+            <div id="movable-objects"> 
+            </div>
+            <div id="overlay-container">
+               <div id="wishu-top" class="wishu">
+                  Greetings from
+               </div>
+               <div id="wishu-bottom" class="wishu">
+                  Wish you were here!
+               </div>
+            </div>
+            <div id="options-container">
+               <h4>Decorations</h4>
+               <div class="grid4x4">
+                  <img class="draggable-icons" id="smile" src="images/smile.png" alt="an icon of a smiley face"/>
+                  <img class="draggable-icons" id="skull" src="images/skull.png" alt="an icon of a skull"/>
+                  <img class="draggable-icons" id="sparkles" src="images/sparkles.png" alt="an icon of sparkles"/>
+                  <img class="draggable-icons" id="heart" src="images/heart.png" alt="an icon of a heart"/>
+               </div>
+               <h4>Greetings</h4>
+               <form name="greetingForm">
+                  <div class="radiogroup">
+                     <input type="radio" id="greetingsfrom" name="greeting" value="greetingsfrom" checked>
+                     <label for="greetingsfrom">Greetings...</label>
+                  </div>
+                  <div class="radiogroup">
+                     <input type="radio" id="missu" name="greeting" value="missu">
+                     <label for="missu">Miss u...</label>
+                  </div>
+                  <div class="radiogroup">
+                     <input type="radio" id="blast" name="greeting" value="blast">
+                     <label for="blast">Having...</label>
+                  </div>
+               </form>
+               <h4>3D Text</h4>
+               <button id="random-rot">Rotation ?</button>
+               <label for="amplitude">Wavy</label>
+               <input type="range" id="amp" min="10" max="50"/>
+               <label for="amplitude">Squishy</label>
+               <input type="range" id="squish" min="0.5" max="1.2" value="1" step="0.01"/>
+            </div>
+         </div>
+         <div id="card" class="postcard-shape flipped">
+         <div id="back-of-postcard" class="postcard-shape">
+            <div id="clickpreventer"></div>
+            <h3 id="sentwith">Sent using the Internet Postcards service - internet.com</h3>
+            <img src="images/icon.svg" id="stamp" alt="a stamp with a internet sign in it"/>
+            <textarea class="messagebox" cols="40" rows="5" placeholder="Write your message here"></textarea>
+            <div id="vert-ruler"></div>
+            <div class="address">
+               <form >
+                  <input type="text" value="From: " />
+                  <input type="text" value="To:" />
+                  <input type="text" placeholder="Address line 1"/>
+                  <input type="text" placeholder="Address line 2"/>
+                  <input type="text" placeholder="City, State, ZIP code"/>
+                  <input type="text" placeholder="Country"/>
+               </form>
+            </div>
+         </div>
+         <div id="front-of-postcard" class="postcard-shape">
+          <canvas id="compiler" width="600" height="400"></canvas>
+         </div>
+         </div>
+      </div>
+      </div>
+      <div id="button-rows">
+         <button id="capture">Capture</button>
+         <button id="continue">Continue</button>
+         <button id="decorate">Done decorating</button>
+         <button id="preview">Continue to preview</button>
+         <button id="finalize">Finalize</button>
+      </div>
+      <!-- <script type="module" src="threejs_font.js"></script> -->
+      <script type="module" src="popup.js"></script>
+   </body>
 </html>

@@ -3,7 +3,8 @@ import {init as threejsinit, animate as threejsanimate} from './threejs_font.js'
 // Initialize butotn with users's prefered color
 let captureButton = document.getElementById("capture");
 let startPage = document.getElementById("starting-page");
-let decorate = document.getElementById("decorationContainer");
+let decorate = document.getElementById("decoration-container");
+let movable = document.getElementById("movable-objects");
 let continueButton = document.getElementById("continue");
 let decorateButton = document.getElementById("decorate");
 let rectcutter = document.getElementById("rect-cutter");
@@ -11,7 +12,18 @@ let svgBBox = rectcutter.getBoundingClientRect();
 let imageContainer = document.getElementById("image-container");
 let step = document.getElementById("step");
 let specific_instruction = document.getElementById("specific");
+let wishuTop = document.getElementById("wishu-top");
+let wishuBottom = document.getElementById("wishu-bottom");
+let trashcan= document.getElementById("trashcan");
+let backOfPostcard = document.getElementById("back-of-postcard");
+let frontOfPostcard = document.getElementById("front-of-postcard");
+let preview = document.getElementById("preview");
+let compiler = document.getElementById("compiler");
+let card = document.getElementById("card");
+let finalize = document.getElementById("finalize");
+
 let newimg;
+let cropped;
 let t;
 let canvas;
 let url;
@@ -40,7 +52,9 @@ const PHASES = {
   NOT_STARTED: 0,
   START:1,
   BOUNDINGBOX:2,
-  DECORATE:3
+  DECORATE:3,
+  ADDRESS:4,
+  PREVIEW: 5
 }
 
 const SCALE_MODE = {
@@ -57,6 +71,11 @@ const RESIZE_DIRECTION = {
 }
 
 let currentPhase = PHASES.NOT_STARTED;
+
+const trashcanLeftBound = 268; 
+const trashcanUpperBound = 375;
+const trashcanWidth = 64;
+const trashcanHeight = 64;
 
 const setupListeners = () => {
 
@@ -104,6 +123,124 @@ const setupThreejs = () => {
   threejsinit(canvas, url);
   threejsanimate();
 }
+const greetingMappings = {
+  missu: ["I miss you", "How are you?"],
+  blast: ["Having a blast at", "Come join me!"],
+  greetingsfrom: ["Greetings from", "wish you were here!"]
+}
+
+var greetingRadioButtons = document.greetingForm.greeting;
+var prev = greetingRadioButtons[0];
+for (var i = 0; i < greetingRadioButtons.length; i++) {
+    greetingRadioButtons[i].addEventListener('change', function() {
+        (prev) ? console.log(prev.value): null;
+        if (this !== prev) {
+            prev = this;
+        }
+        wishuTop.innerHTML = greetingMappings[this.value][0];
+        wishuBottom.innerHTML = greetingMappings[this.value][1];
+
+    });
+}
+
+let iconsList = [];
+
+class DraggableIcon{
+
+  constructor(type){
+    this.down = false;
+    this.pos1 = 0;
+    this.pos2 = 0;
+    this.pos3 = 0;
+    this.pos4 = 0;
+    this.createItem(type);
+    this.elementDrag = this.elementDrag.bind(this);
+    this.createItem = this.createItem.bind(this);
+    this.closeDragElement = this.closeDragElement.bind(this);
+    this.setupListeners = this.setupListeners.bind(this);
+  }
+
+  createItem(type){
+    let ele = document.createElement("IMG");
+    ele.src = "images/" + type + ".png";
+    this.element = ele;
+    movable.appendChild(ele);
+    this.setupListeners(ele);
+  }
+
+  elementDrag(e){
+    e = e || window.event;
+    e.preventDefault();
+    // calculate the new cursor position:
+    this.pos1 = this.pos3 - e.clientX;
+    this.pos2 = this.pos4 - e.clientY;
+    this.pos3 = e.clientX;
+    this.pos4 = e.clientY;
+    const y = this.element.offsetTop - this.pos2;
+    const x = (this.element.offsetLeft - this.pos1);
+    this.x = x;
+    this.y = y;
+    // set the element's new this.position:
+    this.element.style.top = y + "px";
+    this.element.style.left = x + "px";
+    
+    if(x > trashcanLeftBound 
+      &&  x < trashcanLeftBound + trashcanWidth
+      && y > trashcanUpperBound 
+      && y < trashcanUpperBound + trashcanHeight){
+        trashcan.classList.add("activated-trash");
+        this.trash = true;
+    } else {
+      trashcan.classList.remove("activated-trash");
+      this.trash = false;
+    }
+  }
+
+  closeDragElement(){
+    // stop moving when mouse button is released:
+    document.onmouseup = null;
+    document.onmousemove = null;
+    trashcan.style.display = "none";
+    if(this.trash){
+      var index = iconsList.indexOf(this);
+      if (index > -1) {
+        iconsList.splice(index, 1);
+      }
+      this.element.remove();
+    }
+    
+  }
+
+  setupListeners(target){
+    target.addEventListener("mousedown", (e) => {
+      this.down = true;
+      e = e || window.event;
+      e.preventDefault();
+      // get the mouse cursor position at startup:
+      this.pos3 = e.clientX;
+      this.pos4 = e.clientY;
+      document.onmouseup = this.closeDragElement;
+      // call a function whenever the cursor moves:
+      document.onmousemove = this.elementDrag;
+      trashcan.style.display = "block";
+    })
+  }
+}
+
+document.querySelectorAll(".draggable-icons").forEach(item => {
+  item.addEventListener("click", () => {
+    iconsList.push(new DraggableIcon(item.id));
+  })
+  
+})
+
+decorateButton.addEventListener("click", () => {
+  switchPhase();
+})
+
+preview.addEventListener("click", () => {
+  switchPhase();
+})
 
 const setupDecorate= ()=>{
   imageContainer.style.display="none"
@@ -116,7 +253,11 @@ const setupDecorate= ()=>{
   document.getElementById("bg-line").style.left = "59.5px"
   setupThreejs();
   return (() => {
-    console.log("nothing to do for now")
+    decorate.style.display="none";
+    decorateButton.style.display = "none";
+    document.getElementById("bg-line").src = "../images/decorative_line.svg"
+    document.getElementById("bg-line").style.removeProperty('width');
+    document.getElementById("bg-line").style.removeProperty('left')
   })
 }
 
@@ -134,6 +275,12 @@ const switchPhase = () => {
       break;
     case PHASES.DECORATE:
       cleanupFunc = setupDecorate();
+      break;
+    case PHASES.ADDRESS:
+      cleanupFunc = setupAddressPhase();
+      break;
+    case PHASES.PREVIEW:
+      cleanupFunc = setupPreviewPhase();
       break;
   }
 }
@@ -198,7 +345,7 @@ document.getElementById("continue").addEventListener("click", () => {
   imageContainer.style.width = `${postcardWidth}px`;
   imageContainer.style.height = `${postcardHeight}px`;
 
-  let cropped = document.createElement("CANVAS");
+  cropped = document.createElement("CANVAS");
   let ctx = cropped.getContext("2d");
 
   canvas = cropped;
@@ -351,18 +498,51 @@ document.addEventListener("mouseup", () => {
   resizing = false;
 });
 
-const bindRectCutter = (wid, hei) => {
-  console.log("rect cutter")
-  //let imageContainer = document.getElementById("image-container");
-  // rectcutter.style.width = `${wid}px`
-  // rectcutter.style.height = `${hei}px`
-  // rectcutter.width = wid;
-  // rectcutter.height = hei;
-  //let ctx = rectcutter.getContext("2d");
-  // ctx.lineWidth = "3";
-  // ctx.beginPath();
-  // ctx.setLineDash([15, 5]);
-  // ctx.rect(20, 20, 300, 200);
-  // ctx.stroke();
-  // imageContainer.appendChild(rectcutter);
+const compile = () => {
+  let ctx = compiler.getContext("2d");
+  ctx.drawImage(cropped, 0, 0, postcardWidth, postcardHeight);
+  ctx.drawImage(document.getElementById("threecanvas"), 0, 0, postcardWidth, postcardHeight);
+  iconsList.forEach((item) => {
+    ctx.drawImage(item.element, item.x, item.y, 50, 50);
+  })
+  ctx.font = "bold 32px Courgette";
+  ctx.fillStyle = "red";
+  ctx.strokeStyle = "white";
+  ctx.lineWidth = "2px";
+  ctx.strokeText(greetingMappings[prev.value][0], 20, 35);
+  ctx.fillText(greetingMappings[prev.value][0], 20, 35);
+  ctx.strokeText(greetingMappings[prev.value][1], 300, 365);
+  ctx.fillText(greetingMappings[prev.value][1], 300, 365);
+  
 }
+
+const setupAddressPhase = ()=>{
+  card.style.display = "block";
+  backOfPostcard.style.display = "block";
+  preview.style.display = "block";
+  step.innerHTML = "Step 4";
+  specific_instruction.innerHTML = "Add the info.";
+  
+  return (() => {
+    preview.style.display = "none";
+    card.classList.remove("flipped");
+  })
+}
+
+const setupPreviewPhase = () => {
+  compile();
+  frontOfPostcard.style.display = "block";
+  finalize.style.display = "block";
+  card.classList.add("preview");
+  step.innerHTML = "Step 5";
+  specific_instruction.innerHTML = "Preview your card. Hover and click to flip.";
+  return (() => {
+    frontOfPostcard.style.display = "none";
+    card.style.display = "none";
+  })
+}
+
+card.addEventListener("click", () => {
+  if(currentPhase != PHASES.PREVIEW) return;
+  card.classList.toggle("flipped");
+})
