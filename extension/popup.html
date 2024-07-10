@@ -6,14 +6,13 @@
       <link rel="stylesheet" href="button.css">
    </head>
    <body>
-      <img src="images/decorative_line.svg" id="bg-line"/>
       <div id="error">
-         Oh no! It looks we failed to capture the image. 
-         <br/>
-         This can happen when you open the extension but navigate away from this tab momentarily. 
-         <br/>
-         No worries, close and reopen this extension and try again.
+         <div>
+         <p id="error-text"> </p>
+         <button id="dismiss-address-error">OK</button>
+         </div>
       </div>
+      <img src="images/decorative_line.svg" id="bg-line"/>
       <div id="title">
          <img src="./images/icon.svg" />
          Internet Postcards
@@ -25,13 +24,45 @@
       <div id="postcard">
          <div id="starting-page">
             <div id="starting-page-info">
-               This extension lets you send real, physical, stylized postcards from any website for $1.
+               This extension lets you send real, physical, stylized postcards from any website.
             </div>
             <div id="starting-page-buttons">
                <button>Go to homepage</button>
-               <button>More Info</button>
             </div>
             <img src="images/starting_image.png"/>
+         </div>
+         <div id="order-page" class="postcard-shape">
+            <div>
+               <div>
+               <p>Place your code in below. Contact hello@internetpost.cards if you don't have one already.</p>
+               <form name="promocode">
+                  <div class="promo-row">
+                     <input name="promo1" type="text" value="montana"/>
+                     <span>-</span>
+                     <input name="promo2" type="text" value="west"/>
+                     <span>-</span>
+                     <input name="promo3" type="text" value="salami"/>
+                     <span>-</span>
+                     <input name="promo4" type="text" value="item"/>
+                  </div>
+               </form>
+               </div>
+               <div>
+                  <p>Would you want to share the decorated postcard image anonomously to the postcard gallery at internetpost.cards? Only the front of the postcard with the website screenshot and decorations will be shared.</p>
+                  <form name="sharecard">
+                     <input name="sharecard" type="checkbox"/><label name="sharecard">Share my postcard</label>
+                  </form>
+               </div>
+            </div>
+         </div>
+         <div id="confirmation-page">
+            <p><b>Your postcard has been sent! Thanks for trying out the extension!</b>
+               Screenshot this page for your records in case you have questions in the future!</p>
+            <br/>
+            <p>Your confirmation ID is <span id="confirmation-id"></span>.</p>
+            <p>The estimated delivery date is: <span id="confirmation-date"></span></p>
+            <a target="_blank" id="confirmation-pdf">Check out a rendered preview of your card here.</a>
+            <p>You have <span id="confirmation-cardsleft"></span> cards left</p>
          </div>
          <div id="image-container">
             <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" id="rect-cutter">
@@ -39,7 +70,7 @@
                   <rect
                      id="rect-drag"
                      width="60" 
-                     height="40"  
+                     height="42.5"  
                      fill="transparent"
                      stroke-dasharray="2,0.8" 
                      stroke="black"
@@ -148,7 +179,7 @@
                   </div>
                   <div class="radiogroup">
                      <input type="radio" id="missu" name="greeting" value="missu">
-                     <label for="missu">Miss u...</label>
+                     <label for="missu">Vacationing...</label>
                   </div>
                   <div class="radiogroup">
                      <input type="radio" id="blast" name="greeting" value="blast">
@@ -156,9 +187,9 @@
                   </div>
                </form>
                <h4>3D Text</h4>
-               <button id="random-rot">Rotation ?</button>
+               <button id="random-rot">? Rotation</button>
                <label for="amplitude">Wavy</label>
-               <input type="range" id="amp" min="10" max="50"/>
+               <input type="range" id="amp" min="0" max="50"/>
                <label for="amplitude">Squishy</label>
                <input type="range" id="squish" min="0.5" max="1.2" value="1" step="0.01"/>
             </div>
@@ -166,23 +197,37 @@
          <div id="card" class="postcard-shape flipped">
          <div id="back-of-postcard" class="postcard-shape">
             <div id="clickpreventer"></div>
-            <h3 id="sentwith">Sent using the Internet Postcards service - internet.com</h3>
+            <h3 id="sentwith">Sent from the Internet Postcards service. More info at internetpost.cards</h3>
             <img src="images/icon.svg" id="stamp" alt="a stamp with a internet sign in it"/>
-            <textarea class="messagebox" cols="40" rows="5" placeholder="Write your message here"></textarea>
+            <textarea id="messagebox" cols="40" rows="5" placeholder="Write your message here"></textarea>
             <div id="vert-ruler"></div>
+            <div class="return-address">
+               <form name="sender">
+                  <input name="sender name" type="text" placeholder="Your Name" value="connie" />
+                  <input name="sender address1" type="text" placeholder="Return address line 1" value= "1234 WoofWoof Ave."/>
+                  <input name="sender address2" type="text" placeholder="Return address line 2"/>
+                  <div class="address-row">
+                     <input name="sender city" type="text" placeholder="City" value="Pittsburgh"/>
+                     <input name="sender state" type="text" placeholder="State" value="PA"/>
+                     <input name="sender zip" type="text" placeholder="ZIP code" value="15217"/>
+                  </div>
+               </form>
+            </div>
             <div class="address">
-               <form >
-                  <input type="text" value="From: " />
-                  <input type="text" value="To:" />
-                  <input type="text" placeholder="Address line 1"/>
-                  <input type="text" placeholder="Address line 2"/>
-                  <input type="text" placeholder="City, State, ZIP code"/>
-                  <input type="text" placeholder="Country"/>
+               <form name="recipient">
+                  <input name="recipient name" type="text" placeholder="Recipient name" value="connie"/>
+                  <input name="recipient address1" type="text" placeholder="Address line 1" value="1234 WoofWoof Ave."/>
+                  <input name="recipient address2" type="text" placeholder="Address line 2"/>
+                  <div class="address-row">
+                     <input name="recipient city" type="text" placeholder="City" value="Pittsburgh"/>
+                     <input name="recipient state" type="text" placeholder="State" value="PA"/>
+                     <input name="recipient zip" type="text" placeholder="ZIP code" value="15217"/>
+                  </div>
                </form>
             </div>
          </div>
          <div id="front-of-postcard" class="postcard-shape">
-          <canvas id="compiler" width="600" height="400"></canvas>
+          <canvas id="compiler" width="1875" height="1350"></canvas>
          </div>
          </div>
       </div>
@@ -193,6 +238,8 @@
          <button id="decorate">Done decorating</button>
          <button id="preview">Continue to preview</button>
          <button id="finalize">Finalize</button>
+         <button id="order">Place order</button>
+         <button id="homepage">Support the creator on Kofi</button>
       </div>
       <!-- <script type="module" src="threejs_font.js"></script> -->
       <script type="module" src="popup.js"></script>

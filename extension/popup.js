@@ -1,4 +1,4 @@
-import {init as threejsinit, animate as threejsanimate} from './threejs_font.js'
+import {init as threejsinit, animate as threejsanimate, stop as threejsstop} from './threejs_font.js'
 
 // Initialize butotn with users's prefered color
 let captureButton = document.getElementById("capture");
@@ -21,12 +21,15 @@ let preview = document.getElementById("preview");
 let compiler = document.getElementById("compiler");
 let card = document.getElementById("card");
 let finalize = document.getElementById("finalize");
+let order = document.getElementById("order");
 
 let newimg;
 let cropped;
 let t;
 let canvas;
 let url;
+let data;
+let successfulResponse;
 
 let dragging = false;
 let resizing = false;
@@ -39,8 +42,12 @@ let scale = 1;
 let orgwid, orghei;
 let scaleMin = 0.8;
 
-const postcardWidth = 600;
-const postcardHeight = 400;
+const postcardWidth = 1875;
+const postcardHeight = 1350;
+const postcardWidthStyle = 600;
+const postcardHeightStyle = 425;
+
+const scalingRatio = 3.17647058824;
 
 let currentResizeDirection;
 let scaleMode;
@@ -54,7 +61,9 @@ const PHASES = {
   BOUNDINGBOX:2,
   DECORATE:3,
   ADDRESS:4,
-  PREVIEW: 5
+  PREVIEW: 5,
+  ORDER: 6,
+  CONFIRM: 7
 }
 
 const SCALE_MODE = {
@@ -77,6 +86,13 @@ const trashcanUpperBound = 375;
 const trashcanWidth = 64;
 const trashcanHeight = 64;
 
+const captureError = "Oh no! It looks we failed to capture the image. This can happen when you open the extension but navigate away from this tab momentarily. No worries, close and reopen this extension and try again."
+
+const alertError = (error) => {
+  document.getElementById("error").style.display = "flex"
+  document.getElementById("error-text").innerHTML = error;
+}
+
 const setupListeners = () => {
 
   chrome.runtime.onMessage.addListener(
@@ -88,7 +104,7 @@ const setupListeners = () => {
         bindImg(request.savedImage)
         sendResponse({message: "thanks!"});
       } else if (request.message === "error"){
-        document.getElementById("error").style.display = "block"
+        alertError(captureError);
         document.getElementById("postcard").style.display = "none"
         document.getElementById("button-rows").style.display = "none"
       } else {
@@ -124,9 +140,9 @@ const setupThreejs = () => {
   threejsanimate();
 }
 const greetingMappings = {
-  missu: ["I miss you", "How are you?"],
+  missu: ["I'm vacationing at", "What about you?"],
   blast: ["Having a blast at", "Come join me!"],
-  greetingsfrom: ["Greetings from", "wish you were here!"]
+  greetingsfrom: ["Greetings from", "Wish you were here!"]
 }
 
 var greetingRadioButtons = document.greetingForm.greeting;
@@ -239,7 +255,16 @@ decorateButton.addEventListener("click", () => {
 })
 
 preview.addEventListener("click", () => {
+  data = validateForm();
+  if(!data){
+    alertError("Oh no! Please fill out all of the fields first :')");
+    return;
+  }
   switchPhase();
+})
+
+document.getElementById("dismiss-address-error").addEventListener("click", ()=>{
+  document.getElementById("error").style.display = "none";
 })
 
 const setupDecorate= ()=>{
@@ -258,6 +283,7 @@ const setupDecorate= ()=>{
     document.getElementById("bg-line").src = "../images/decorative_line.svg"
     document.getElementById("bg-line").style.removeProperty('width');
     document.getElementById("bg-line").style.removeProperty('left')
+    threejsstop();
   })
 }
 
@@ -282,6 +308,12 @@ const switchPhase = () => {
     case PHASES.PREVIEW:
       cleanupFunc = setupPreviewPhase();
       break;
+    case PHASES.ORDER:
+      cleanupFunc = setupOrderPhase();
+      break;
+    case PHASES.CONFIRM:
+      cleanupFunc = setupConfirmPhase();
+      break;
   }
 }
 
@@ -305,9 +337,9 @@ const bindImg = (img) => {
     orghei = hei;
     let scaledWid, scaledHei;
     let aspectratio = wid/hei;
-    if(wid/hei > postcardWidth/postcardHeight){
-      scaledWid = postcardWidth;
-      scaledHei = 1/aspectratio * postcardWidth;
+    if(wid/hei > postcardWidthStyle/postcardHeight){
+      scaledWid = postcardWidthStyle;
+      scaledHei = 1/aspectratio * postcardWidthStyle;
       newimg.style.width = `${scaledWid}px`
       newimg.style.height = `${scaledHei}px`
       imageContainer.style.width = `${scaledWid}px`
@@ -315,8 +347,8 @@ const bindImg = (img) => {
       scaleMode = SCALE_MODE.WIDTH;
       rectCutterHeight = scaledWid;
     } else {
-      scaledHei = postcardHeight;
-      scaledWid = aspectratio * postcardHeight;
+      scaledHei = postcardHeightStyle;
+      scaledWid = aspectratio * postcardHeightStyle;
       newimg.style.width = `${scaledWid}px`
       newimg.style.height = `${scaledHei}px`
       imageContainer.style.width = `${scaledWid}px`
@@ -503,16 +535,17 @@ const compile = () => {
   ctx.drawImage(cropped, 0, 0, postcardWidth, postcardHeight);
   ctx.drawImage(document.getElementById("threecanvas"), 0, 0, postcardWidth, postcardHeight);
   iconsList.forEach((item) => {
-    ctx.drawImage(item.element, item.x, item.y, 50, 50);
+    ctx.drawImage(item.element, item.x * scalingRatio, item.y * scalingRatio, 50 * scalingRatio, 50 * scalingRatio);
   })
-  ctx.font = "bold 32px Courgette";
+  ctx.font = "bold 102px Courgette";
   ctx.fillStyle = "red";
   ctx.strokeStyle = "white";
-  ctx.lineWidth = "2px";
-  ctx.strokeText(greetingMappings[prev.value][0], 20, 35);
-  ctx.fillText(greetingMappings[prev.value][0], 20, 35);
-  ctx.strokeText(greetingMappings[prev.value][1], 300, 365);
-  ctx.fillText(greetingMappings[prev.value][1], 300, 365);
+  ctx.lineWidth = 10;
+  const textWidth = ctx.measureText(greetingMappings[prev.value][1]).width;
+  ctx.strokeText(greetingMappings[prev.value][0], 20 * scalingRatio, 40 * scalingRatio);
+  ctx.fillText(greetingMappings[prev.value][0], 20 * scalingRatio, 40 * scalingRatio);
+  ctx.strokeText(greetingMappings[prev.value][1], 570 * scalingRatio -textWidth, 390 * scalingRatio);
+  ctx.fillText(greetingMappings[prev.value][1], 570 * scalingRatio - textWidth, 390 * scalingRatio);
   
 }
 
@@ -539,6 +572,33 @@ const setupPreviewPhase = () => {
   return (() => {
     frontOfPostcard.style.display = "none";
     card.style.display = "none";
+    finalize.style.display = "none";
+  })
+}
+
+const setupOrderPhase = () => {
+  step.innerHTML = "Step 6";
+  specific_instruction.innerHTML = "Put in promo code and order!";
+  document.getElementById("order-page").style.display = "block";
+  document.getElementById("order").style.display = "block";
+  return (() => {
+    document.getElementById("order-page").style.display = "none";
+    document.getElementById("order").style.display = "none";
+  })
+}
+
+const setupConfirmPhase = () => {
+  step.innerHTML = "Step 7";
+  specific_instruction.innerHTML = "You're finished! Donations are appreciated, but not necessary!";
+  document.getElementById("confirmation-page").style.display = "block";
+  document.getElementById("homepage").style.display = "block";
+  document.getElementById("confirmation-id").innerHTML = successfulResponse["printrecord"];
+  document.getElementById("confirmation-date").innerHTML = successfulResponse["deliverydate"];
+  document.getElementById("confirmation-pdf").href = successfulResponse["pdf"];
+  document.getElementById("confirmation-cardsleft").innerHTML = successfulResponse["timesleft"];
+  return (() => {
+    document.getElementById("confirmation-page").style.display = "none";
+    document.getElementById("homepage").style.display = "none";
   })
 }
 
@@ -546,3 +606,146 @@ card.addEventListener("click", () => {
   if(currentPhase != PHASES.PREVIEW) return;
   card.classList.toggle("flipped");
 })
+
+finalize.addEventListener("click", () => {
+  switchPhase();
+})
+
+order.addEventListener("click", ()=>{
+
+  order.innerHTML = "Processing..."
+
+  let promoFormatted = validatePromoCode();
+
+  if(!promoFormatted){
+    alertError("Fill out all of the promo code fields first!");
+    return;
+  }
+
+  let blob = compiler.toDataURL("image/jpeg").split(';base64,')[1];
+  console.log(blob);
+
+  data["image"] = blob
+
+  let apiurl = "http://127.0.0.1:8080/pingpong"
+  //let apiurl = "https://stellar-chemist-310218.uc.r.appspot.com/pingpong"
+  
+  postData(apiurl, data)
+  .then(response => {
+    console.log("RESULT");
+    if(response.status === "bad code"){
+      //promo code was not correct
+      alertError("Your promo code wasn't correct!");
+      order.innerHTML = "Place order"
+    } else if (response.status === "no more postcards"){
+      //promo code was used up
+      order.innerHTML = "Place order"
+      alertError("Your code has been used up! Contact hello@internetpost.cards if you think this is a mistake.")
+    } else if (response.status === "success"){
+      successfulResponse = response;
+      order.innerHTML = "Place order"
+      switchPhase();
+    } else {
+      order.innerHTML = "Place order"
+      alertError("Hmm... something went wrong. Contact hello@internetpost.cards if you think this is a mistake. The error is: " + response["message"]["Error"]["Message"]);
+    }
+  });
+})
+
+async function postData(url = '', data = {}) {
+  // Default options are marked with *
+  const response = await fetch(url, {
+    method: 'POST', // *GET, POST, PUT, DELETE, etc.
+    mode: 'cors', // no-cors, *cors, same-origin
+    cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+    credentials: 'same-origin', // include, *same-origin, omit
+    headers: {
+      'Content-Type': 'application/json'
+      // 'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    redirect: 'follow', // manual, *follow, error
+    referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+    body: JSON.stringify(data) // body data type must match "Content-Type" header
+  });
+  return response.json(); // parses JSON response into native JavaScript objects
+}
+
+function validatePromoCode() {
+  var promo1 = document.forms["promocode"]["promo1"].value;
+  var promo2 = document.forms["promocode"]["promo2"].value;
+  var promo3 = document.forms["promocode"]["promo3"].value;
+  var promo4 = document.forms["promocode"]["promo4"].value;
+  if (promo1 == null 
+    || promo1 == ""
+    || promo2 == null 
+    || promo2 == ""
+    || promo3 == null 
+    || promo3 == ""
+    || promo4 == null 
+    || promo4 == ""){
+      return false;
+    }
+
+  data["promocode"] = promo1 + "-" + promo2 + "-" + promo3 + "-" + promo4;
+  return true;
+}
+
+function validateForm() {
+  
+  var r_name = document.forms["recipient"]["recipient name"].value;
+  var r_address1 = document.forms["recipient"]["recipient address1"].value;
+  var r_address2 = document.forms["recipient"]["recipient address2"].value;
+  var r_city = document.forms["recipient"]["recipient city"].value;
+  var r_state = document.forms["recipient"]["recipient state"].value;
+  var r_zip = document.forms["recipient"]["recipient zip"].value;
+
+  var s_name = document.forms["sender"]["sender name"].value;
+  var s_address1 = document.forms["sender"]["sender address1"].value;
+  var s_address2 = document.forms["sender"]["sender address2"].value;
+  var s_city = document.forms["sender"]["sender city"].value;
+  var s_state = document.forms["sender"]["sender state"].value;
+  var s_zip = document.forms["sender"]["sender zip"].value;
+
+  if (r_name == null 
+    || r_name == ""
+    || r_address1 == null 
+    || r_address1 == ""
+    || r_city == null 
+    || r_city == ""
+    || r_state == null 
+    || r_state == ""
+    || r_zip == null 
+    || r_zip == ""
+    || s_name == null 
+    || s_name == ""
+    || s_address1 == null 
+    || s_address1 == ""
+    || s_city == null 
+    || s_city == ""
+    || s_state == null 
+    || s_state == ""
+    || s_zip == null 
+    || s_zip == "") {
+    return false;
+  }
+  return {
+    recipient: {
+      name: r_name,
+      address1: r_address1,
+      address2: r_address2,
+      state: r_state,
+      city: r_city,
+      zipcode: r_zip
+    },
+    sender: {
+      name: s_name,
+      address1: s_address1,
+      address2: s_address2,
+      state: s_state,
+      city: s_city,
+      zipcode: s_zip
+    },
+    promocode: "montana-west-salami-item",
+    message: document.getElementById("messagebox").value
+  }
+}

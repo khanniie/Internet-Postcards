@@ -41,6 +41,7 @@ let pointerZ = 0;
 
 let lastsquish = 0.8;
 let squish = 0.8;
+let baseScale = 1;
 
 let windowHalfX = window.innerWidth / 2;
 
@@ -103,7 +104,7 @@ function init(canvas, url) {
         preserveDrawingBuffer: true
     });
     renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(600, 400);
+    renderer.setSize(600, 425);
     renderer.domElement.id="threecanvas";
     container.appendChild(renderer.domElement);
 
@@ -244,11 +245,23 @@ function createText() {
         bevelEnabled: bevelEnabled
     });
 
-    textGeo.scale(squish, 1, 1);
-
     textGeo.computeBoundingBox();
 
+    
     makeItWavy(textGeo);
+
+    
+
+    var min = textGeo.boundingBox.min;
+    var max = textGeo.boundingBox.max;
+
+    // var bounds = computeScreenSpaceBoundingBox(textMesh1);
+    var boundScreenX = (max.x - min.x);
+    var boundScreenY = (max.y - min.y);
+    console.log(boundScreenX, boundScreenY);
+    var rescale = 600/boundScreenX;
+    rescale = rescale > 1 ? 1 : rescale;
+    textGeo.scale(squish * rescale, 1, 1);
     const centerOffset = -0.5 * (textGeo.boundingBox.max.x - textGeo.boundingBox.min.x);
 
     textMesh1 = new THREE.Mesh(textGeo, materials);
@@ -302,10 +315,10 @@ function onSliderMove(event) {
 }
 
 //
-
+var animationFrameId;
 function animate() {
 
-    requestAnimationFrame(animate);
+    animationFrameId = requestAnimationFrame(animate);
 
     render();
 
@@ -333,7 +346,32 @@ function render() {
 
 }
 
+function stop(){
+    cancelAnimationFrame( animationFrameId );
+}
+
 export {
     init,
-    animate
+    animate,
+    stop
 }
+
+//https://stackoverflow.com/questions/45860183/threejs-2d-bounding-box-of-3d-object
+function computeScreenSpaceBoundingBox(mesh) {
+    // var vertices = mesh.geometry.vertices;
+    // var vertex = new THREE.Vector3();
+    // var min = new THREE.Vector3(1, 1, 1);
+    // var max = new THREE.Vector3(-1, -1, -1);
+    // var positionData = textGeo.getAttribute("position");
+    // let positionPoints = positionData.array;
+  
+    // for (var i = 0; i < positionPoints.length; i++) {
+    //   var vertexWorldCoord = vertex.copy(positionPoints[i]).applyMatrix4(mesh.matrixWorld);
+    //   var vertexScreenSpace = vertexWorldCoord.project(camera);
+    //   min.min(vertexScreenSpace);
+    //   max.max(vertexScreenSpace);
+    // }
+  
+    //return new THREE.Box2(min, max);
+  }
+  
